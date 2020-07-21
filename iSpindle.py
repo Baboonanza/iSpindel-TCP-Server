@@ -1,11 +1,5 @@
-#!/usr/bin/env python3
-# Version 3.0
-# Modified version fpor Python 3
-# Some string handling had to be changed for python3
-#  
-# Version 2.1
-# Added Recipe_Id column while writing data to enable archive function in database
-#
+#!/usr/bin/env python2.7
+
 # Version 2.0
 # Made possible by Alex (avollkopf): A whole new release.
 # Now including complete graphical user interface and new charts.
@@ -65,27 +59,33 @@
 
 from socket import socket, AF_INET, SOCK_STREAM, SOL_SOCKET, SO_REUSEADDR
 from datetime import datetime
-import _thread
-import reprlib
+import thread
 import json
 import time
-import configparser
+from ConfigParser import ConfigParser
 import os
 import sys
+
+reload(sys)
+sys.setdefaultencoding('utf8')
+
+class MyConfigParser(ConfigParser):
+    def get(self, section, option):
+      return ConfigParser.get(self, section, option).replace('\\r\\n', '\r\n')
+
 
 # CONFIG Start
 # Config is now completely being stored inside the database.
 # So there shouldn't be anything here for you to adjust anymore.
 
-config = configparser.ConfigParser()
-config_path = '~/iSpindel-Srv/config'
+config = MyConfigParser()
+config_path = '~/iSpindel-TCP-Server/config'
 
 try:
   with open(os.path.join(os.path.expanduser(config_path),'iSpindle_config.ini')) as f:
     config.readfp(f)
 except IOError:
-    config.read(os.path.join(os.path.expanduser(config_path),'iSpindle_default.ini'))
-  
+  config.read(os.path.join(os.path.expanduser(config_path),'iSpindle_default.ini'))
 
 # General
 DEBUG = config.get('GENERAL', 'DEBUG') # Set to 1 to enable debug output on console (usually devs only)
@@ -862,8 +862,8 @@ def main():
         dbgprint('waiting for connection... listening on port: ' + str(PORT))
         clientsock, addr = serversock.accept()
         dbgprint('...connected from: ' + str(addr))
-        _thread.start_new_thread(handler, (clientsock, addr))
-        _thread.start_new_thread(sendmail, ())
+        thread.start_new_thread(handler, (clientsock, addr))
+        thread.start_new_thread(sendmail, ())
 
 if __name__ == "__main__":
     main()
